@@ -1,0 +1,7 @@
+langchain
+openai
+streamlit
+tiktoken
+sentence-transformers
+qdrant-client 
+dataclasses-json
