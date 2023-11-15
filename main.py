@@ -28,6 +28,10 @@ SESSION_TOKENS_COUNT = 'tokens_count'
 if SESSION_TOKENS_COUNT not in st.session_state:
     st.session_state[SESSION_TOKENS_COUNT] = 0
 
+SESSION_QUERY_EXAMPLES = 'query_examples'
+if SESSION_QUERY_EXAMPLES not in st.session_state:
+    st.session_state[SESSION_QUERY_EXAMPLES] = []
+
 # ------------------------------- UI
 st.set_page_config(page_title= "Demo POC", layout="wide")
 
@@ -48,6 +52,7 @@ with st.sidebar:
             key="uploaded_index_zip"
         )
         load_button = st.form_submit_button(label="Upload")
+    query_examples = st.expander(label="Query examples", expanded= True)
     tokens_used_container = st.empty()
 
 def refresh_tokens_used():
@@ -61,10 +66,15 @@ def exec_system_prompt(command : str):
 
 refresh_tokens_used()
 
+if not st.session_state[SESSION_QUERY_EXAMPLES]:
+    st.session_state[SESSION_QUERY_EXAMPLES] = backend.get_query_examples()
+query_examples.markdown('\n'.join(st.session_state[SESSION_QUERY_EXAMPLES]))
+
 if load_button:
     if not uploaded_index_file:
         progress.markdown('Please add index file to upload')
         st.stop()
+    backend.upload_index(uploaded_index_file)
 
 prompt = st.chat_input("Your question or command")
 if prompt:
@@ -72,9 +82,18 @@ if prompt:
         exec_system_prompt(prompt)
         st.stop()
     dialog_storage.add_message(DialogRole.USER, prompt)
-    answer = backend.get_answer(prompt)
-    dialog_storage.add_message(DialogRole.ASSISTANT, answer.answer)
-    st.session_state[SESSION_TOKENS_COUNT] += answer.tokens_used
+    #answer = backend.get_answer(prompt)
+
+    search_result = backend.get_chunks(prompt)
+    if search_result:
+        for s in search_result:
+            dialog_storage.add_message(DialogRole.ASSISTANT, s.content)
+    else:
+        dialog_storage.add_message(DialogRole.ASSISTANT, "Sorry, I have no answer to your question")
+
+
+    #dialog_storage.add_message(DialogRole.ASSISTANT, answer.answer)
+    #st.session_state[SESSION_TOKENS_COUNT] += answer.tokens_used
     refresh_tokens_used()
 
 dialog_items = dialog_storage.get_message_list()

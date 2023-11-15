@@ -47,6 +47,9 @@ def streamlit_hack_remove_top_space():
                 .css-10oheav {
                     padding-top: 2rem;
                 }
+                div[data-testid="stSidebarUserContent"]{
+                    padding-top: 2rem;
+                }
         </style>
         """, unsafe_allow_html=True)
 
