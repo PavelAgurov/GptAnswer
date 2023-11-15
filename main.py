@@ -87,7 +87,8 @@ if prompt:
     search_result = backend.get_chunks(prompt)
     if search_result:
         for s in search_result:
-            dialog_storage.add_message(DialogRole.ASSISTANT, s.content)
+            content_str = f'[{s.score:.02}] {s.content}'
+            dialog_storage.add_message(DialogRole.ASSISTANT, content_str)
     else:
         dialog_storage.add_message(DialogRole.ASSISTANT, "Sorry, I have no answer to your question")
 
@@ -98,5 +99,5 @@ if prompt:
 
 dialog_items = dialog_storage.get_message_list()
 for dialog_item in dialog_items:
-    with st.chat_message(dialog_item.role):
+    with st.chat_message(dialog_item.role.value):
         st.write(dialog_item.msg)

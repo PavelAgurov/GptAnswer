@@ -9,10 +9,12 @@ from datetime import datetime
 from dataclasses import dataclass
 import streamlit as st
 
-class DialogRole(enum.StrEnum):
+class DialogRole(enum.Enum):
     """Role enum"""
     USER = 'user'
     ASSISTANT = 'assistant'
+    def __repr__(self):
+        return self.value
 
 @dataclass
 class DialogItem:
