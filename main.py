@@ -52,6 +52,7 @@ with st.sidebar:
             key="uploaded_index_zip"
         )
         load_button = st.form_submit_button(label="Upload")
+    create_summary = st.checkbox(label="Create summary (LLM)")
     query_examples = st.expander(label="Query examples", expanded= True)
     tokens_used_container = st.empty()
 
@@ -82,20 +83,23 @@ if prompt:
         exec_system_prompt(prompt)
         st.stop()
     dialog_storage.add_message(DialogRole.USER, prompt)
-    #answer = backend.get_answer(prompt)
 
     search_result = backend.get_chunks(prompt)
     if search_result:
-        for s in search_result:
-            content_str = f'[{s.score:.02}] {s.content}'
-            dialog_storage.add_message(DialogRole.ASSISTANT, content_str)
+        if not create_summary:
+            for s in search_result:
+                content_str = f'[{s.score:.02}] {s.content}'
+                dialog_storage.add_message(DialogRole.ASSISTANT, content_str)
+        else:
+            answer = backend.create_summary(prompt, search_result)
+            if not answer.error:
+                dialog_storage.add_message(DialogRole.ASSISTANT, answer.answer)
+            else:
+                dialog_storage.add_message(DialogRole.ASSISTANT, answer.error)
+            st.session_state[SESSION_TOKENS_COUNT] += answer.tokens_used
+            refresh_tokens_used()
     else:
         dialog_storage.add_message(DialogRole.ASSISTANT, "Sorry, I have no answer to your question")
-
-
-    #dialog_storage.add_message(DialogRole.ASSISTANT, answer.answer)
-    #st.session_state[SESSION_TOKENS_COUNT] += answer.tokens_used
-    refresh_tokens_used()
 
 dialog_items = dialog_storage.get_message_list()
 for dialog_item in dialog_items:
