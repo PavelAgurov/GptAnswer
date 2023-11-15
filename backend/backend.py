@@ -62,7 +62,7 @@ class Backend():
     def __get_api_key(self):
         return os.environ["OPENAI_API_KEY"]
 
-    def get_embeddings(self, embedding_name : EmbeddingType)-> (OpenAIEmbeddings | SentenceTransformerEmbeddings):
+    def get_embeddings(self, embedding_name : EmbeddingType)-> any:
         """Embeddings"""
         
         if embedding_name == EmbeddingType.OPENAI35.name:
