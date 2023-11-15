@@ -1,0 +1,16 @@
+{
+    "chunkSplitterParams": {
+        "splitter_params": {
+            "chunk_min_tokens": 20,
+            "tokens_per_chunk": 100,
+            "chunk_overlap_tokens": 0,
+            "model_name": "gpt-3.5-turbo-0613"
+        },
+        "fact_formatted": true,
+        "fact_line_separator": "#### FACT ####"
+    },
+    "document_set": "IQ-facts",
+    "embedding_name": "SBERT",
+    "default_threshold": 0.4,
+    "error": null
+}

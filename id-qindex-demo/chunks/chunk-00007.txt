@@ -1,0 +1,1 @@
+Our online booking system will show the gender of those who have already booked a room in your chosen flat, if this information is available.

@@ -52,7 +52,7 @@ class Backend():
     embeddings : Embeddings
 
     __CHUNKS_COLLECTION_NAME = 'chunks'
-    __DISK_FOLDER = '.qindex'
+    __DISK_FOLDER = 'id-qindex-demo' #'.qindex'
     __INDEX_FOLDER = 'index'
     __QUERY_EXAMPLES  = 'query_examples.txt'
 
@@ -114,7 +114,7 @@ class Backend():
         """Get examples of queries, if exists"""
         examples_file_name = os.path.join(self.__DISK_FOLDER, self.__QUERY_EXAMPLES)
         if not os.path.isfile(examples_file_name):
-            return ["aaa"]
+            return []
         with open(examples_file_name, "rt", encoding="utf-8") as f:
             examples = f.readlines()
         examples = [e for e in examples if e and not e.startswith('#')]
