@@ -22,6 +22,7 @@ from langchain.embeddings import SentenceTransformerEmbeddings
 from langchain.chat_models import ChatOpenAI
 
 from backend.refine_answer import RefineAnswerChain
+from backend.step_back import StepbackChain
 
 
 logger : logging.Logger = logging.getLogger()
@@ -111,7 +112,7 @@ class Backend():
         
         raise LlmEmbeddingError(f'Unsupported embedding {embedding_name}')
     
-    def get_chunks(self, question : str) -> list[SearchResult]:
+    def get_chunks(self, question : str, ignore_score_threshold : bool) -> list[SearchResult]:
         """Find chunks"""
 
         client = QdrantClient(path = os.path.join(self.__DISK_FOLDER, self.__INDEX_FOLDER))
@@ -121,11 +122,15 @@ class Backend():
                     collection_name= self.__CHUNKS_COLLECTION_NAME,
                     embeddings= self.embeddings
                 )
+        
+        score_threshold = 0
+        if not ignore_score_threshold:
+            score_threshold = self.score_threshold
 
         search_results : list[tuple[Document, float]] = qdrant.similarity_search_with_score(
             question, 
             k= self.sample_count, 
-            score_threshold = self.score_threshold
+            score_threshold = score_threshold
         )
         return [SearchResult(s[0].page_content, s[1], s[0].metadata) for s in search_results]
 
@@ -136,6 +141,12 @@ class Backend():
         refine_answer_result = refine_chain.run(question, chunk_content)
         return Answer(refine_answer_result.answer, refine_answer_result.tokens_used, refine_answer_result.error)
     
+    def get_step_back(self,  question : str) -> Answer:
+        """Execute step back"""
+        step_back_chain = StepbackChain(self.llm_summary)
+        step_back_result = step_back_chain.run(question)
+        return Answer(step_back_result.answer, step_back_result.tokens_used, step_back_result.error)
+
     def upload_index(self, uploaded_index_file):
         """Upload index"""
         pass

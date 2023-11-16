@@ -1,8 +1,9 @@
 """
     Main APP and UI
 """
-# pylint: disable=C0301,C0103,C0303,C0411,C0304
+# pylint: disable=C0301,C0103,C0303,C0411,C0304,W1203
 
+import logging
 import streamlit as st
 
 from utils_streamlit import streamlit_hack_remove_top_space, hide_footer, create_sticky_header
@@ -11,6 +12,8 @@ from ui.dialog_storage import DialogStorage, DialogRole
 from backend.backend import Backend
 
 init_streamlit_logger()
+
+logger : logging.Logger = logging.getLogger()
 
 # ------------------------------- Session
 
@@ -53,6 +56,8 @@ with st.sidebar:
         )
         load_button = st.form_submit_button(label="Upload")
     create_summary = st.checkbox(label="Create summary (LLM)")
+    ignore_score_threshold = st.checkbox(label="Ignore score threshold")
+    enable_step_back = st.checkbox(label="Enable step back")
     query_examples = st.expander(label="Query examples", expanded= True)
     tokens_used_container = st.empty()
 
@@ -84,7 +89,14 @@ if prompt:
         st.stop()
     dialog_storage.add_message(DialogRole.USER, prompt)
 
-    search_result = backend.get_chunks(prompt)
+    search_result = backend.get_chunks(prompt, ignore_score_threshold)
+    if not search_result and enable_step_back:
+        logger.info("Run step back strategy")
+        step_back_answer = backend.get_step_back(prompt)
+        logger.info(f"Step back prompt {step_back_answer}")
+        if not step_back_answer.error:
+            search_result = backend.get_chunks(step_back_answer.answer, ignore_score_threshold)
+
     if search_result:
         if not create_summary:
             for s in search_result:

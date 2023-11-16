@@ -16,6 +16,7 @@ from backend.llm_json_parser import get_llm_json
 logger : logging.Logger = logging.getLogger()
 
 NO_ANSWER_STR = "No answer"
+EXTENDED_NO_ANSWER_STR = "Sorry, I have no answer to your question"
 
 refine_initial_prompt_template = """\
 You are a professor of linguistics working in University. 
@@ -118,6 +119,9 @@ class RefineAnswerChain():
                 else:
                     logger.info('Refined answer was rejected')
             
+            if answer == NO_ANSWER_STR:
+                answer = EXTENDED_NO_ANSWER_STR
+
             return RefineAnswerResult(answer, tokens_used, False)
         except Exception as error: # pylint: disable=W0718
             logger.exception(error)
